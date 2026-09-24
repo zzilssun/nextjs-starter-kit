@@ -50,9 +50,10 @@
 ## 2. 사전 구현 계획서 (Implementation Plan Full Text)
 
 > [!NOTE]
-> 작업 전 작성 및 승인된 `implementation_plan.md`의 전문을 생략/축약 없이 그대로 첨부하여 변경 이력과 기획 정합성을 100% 보존합니다.
+> 구현 계획서는 PR 단위로 관리되며, PR이 유지되는 한 하나의 문서(`docs/implementation_plan/YYYY-MM-DD_PR_{ID}.md`)에 모든 변경 요구사항이 누적(`Plan 1, Plan 2, Plan 3...`) 기록됩니다.
+> 작업 전 작성 및 승인된 구현 계획서 전문을 생략/축약 없이 그대로 첨부하여 변경 이력과 기획 정합성을 100% 보존합니다.
 
-(이곳에 implementation_plan.md 마크다운 전문 삽입)
+(이곳에 docs/implementation_plan/YYYY-MM-DD_PR_{ID}.md 마크다운 전문 삽입)
 
 ## 3. 주요 변경 사항 (Key Changes)
 
