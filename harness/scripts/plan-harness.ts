@@ -8,18 +8,38 @@ export interface PlanAnalysisResult {
   score: number;
 }
 
+function findLatestDocsPlan(): string | null {
+  const docsPlanDir = path.resolve(process.cwd(), "docs/implementation_plan");
+  if (!fs.existsSync(docsPlanDir)) return null;
+
+  const planFiles = fs
+    .readdirSync(docsPlanDir)
+    .filter((f) => f.endsWith(".md") && f !== "README.md" && f !== "TEMPLATE.md")
+    .map((f) => ({
+      path: path.join(docsPlanDir, f),
+      mtime: fs.statSync(path.join(docsPlanDir, f)).mtimeMs,
+    }))
+    .sort((a, b) => b.mtime - a.mtime);
+
+  return planFiles.length > 0 ? planFiles[0].path : null;
+}
+
 export function analyzeImplementationPlan(planPath?: string): PlanAnalysisResult {
+  const docsPlanPath = findLatestDocsPlan();
   const workspacePlanPath = path.resolve(process.cwd(), "implementation_plan.md");
   const scratchPlanPath = path.resolve(process.cwd(), "scratch/implementation_plan.md");
 
   const targetPlanPath =
     planPath ||
+    docsPlanPath ||
     (fs.existsSync(workspacePlanPath) ? workspacePlanPath : "") ||
     (fs.existsSync(scratchPlanPath) ? scratchPlanPath : "") ||
     "";
 
   if (!targetPlanPath || !fs.existsSync(targetPlanPath)) {
-    console.log("ℹ️ No implementation_plan.md found in workspace root. Skipping plan check.");
+    console.log(
+      "ℹ️ No implementation plan found in docs/implementation_plan/ or workspace root. Skipping plan check."
+    );
     return {
       planFile: "",
       hasFunctionalSpec: false,
