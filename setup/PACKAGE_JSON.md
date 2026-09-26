@@ -22,6 +22,7 @@
     "db:studio": "dotenv -e .env.development -- prisma studio",
     "check:types": "tsc --noEmit",
     "check:format": "npm run format:check",
+    "check:agents": "jiti scripts/check-agents-size.ts",
     "plan:check": "jiti scripts/plan-harness.ts",
     "design:lint": "designmd lint DESIGN.md",
     "design:export": "designmd export --format css-tailwind DESIGN.md",

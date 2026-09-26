@@ -17,8 +17,10 @@
 아래 템플릿 파일들을 프로젝트 루트로 복사합니다:
 
 1. `agents/AGENTS.template.md` ➔ 프로젝트 루트의 `AGENTS.md`로 복사 (이름 변경 주의: `.template` 제거).
-2. `stitch/DESIGN.template.md` ➔ 프로젝트 루트의 `DESIGN.md`로 복사 (이름 변경 주의: `.template` 제거).
-3. `harness/docker/Dockerfile.harness` ➔ 프로젝트 루트의 `Dockerfile.harness`로 복사.
+2. `agents/rules/*` ➔ 프로젝트 `docs/rules/*`로 복사 (온디맨드 디스패치 모듈화 룰 디렉터리).
+3. `agents/MULTI_AGENT_PIPELINE_GUIDE.md` ➔ `docs/MULTI_AGENT_PIPELINE_GUIDE.md`로 복사 (5단계 멀티 에이전트 파이프라인 가이드).
+4. `stitch/DESIGN.template.md` ➔ 프로젝트 루트의 `DESIGN.md`로 복사 (이름 변경 주의: `.template` 제거).
+5. `harness/docker/Dockerfile.harness` ➔ 프로젝트 루트의 `Dockerfile.harness`로 복사.
 
 ---
 
@@ -28,6 +30,7 @@
 
 1. **scripts 병합**:
    - `build`, `test`, `lint`, `format`, `format:check`
+   - `check:types`, `check:format`, `check:agents`
    - `plan:check`, `design:lint`, `design:export`
    - `stitch`, `stitch:flow`, `stitch:refactor`, `stitch:capture`, `stitch:sync-back`, `stitch:skeleton`, `stitch:check`
    - `verify`, `verify:full`, `verify:types`, `verify:format`, `verify:fix`, `verify:watch`, `verify:docker`
@@ -45,12 +48,13 @@
 
 1. `harness/scripts/verify-harness.ts` ➔ `scripts/verify-harness.ts`
 2. `harness/scripts/check-ast-guardrails.ts` ➔ `scripts/check-ast-guardrails.ts`
-3. `harness/scripts/plan-harness.ts` ➔ `scripts/plan-harness.ts`
-4. `harness/docker/docker-harness.sh` ➔ `scripts/docker-harness.sh` (실행 권한 `chmod +x` 부여)
-5. `stitch/scripts/stitch-bridge.mts` ➔ `scripts/stitch-bridge.mts`
-6. `stitch/scripts/stitch-skeleton.ts` ➔ `scripts/stitch-skeleton.ts`
-7. `stitch/scripts/capture-fullpage.ts` ➔ `scripts/capture-fullpage.ts`
-8. `stitch/scenarios/types.ts` ➔ `scripts/scenarios/types.ts`
+3. `harness/scripts/check-agents-size.ts` ➔ `scripts/check-agents-size.ts`
+4. `harness/scripts/plan-harness.ts` ➔ `scripts/plan-harness.ts`
+5. `harness/docker/docker-harness.sh` ➔ `scripts/docker-harness.sh` (실행 권한 `chmod +x` 부여)
+6. `stitch/scripts/stitch-bridge.mts` ➔ `scripts/stitch-bridge.mts`
+7. `stitch/scripts/stitch-skeleton.ts` ➔ `scripts/stitch-skeleton.ts`
+8. `stitch/scripts/capture-fullpage.ts` ➔ `scripts/capture-fullpage.ts`
+9. `stitch/scenarios/types.ts` ➔ `scripts/scenarios/types.ts`
 
 ---
 
