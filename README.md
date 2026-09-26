@@ -20,8 +20,14 @@ starter-kit/
 ├── 📖 README.md                           # [본 문서] 스타터 킷 총괄 안내 및 구조도
 │
 ├── 📜 agents/                             # AI 에이전트 개발 표준 및 지침
-│   ├── AGENTS.template.md                 # 범용 Single Source of Truth 시스템 지침 (English)
-│   └── PR_WORKFLOW.md                     # Conventional Commits 및 PR 작성 표준
+│   ├── AGENTS.template.md                 # 범용 Single Source of Truth 시스템 지침 (English, 28KB 예산 준수)
+│   ├── MULTI_AGENT_PIPELINE_GUIDE.md      # 5단계 멀티 에이전트 협업 파이프라인 가이드
+│   ├── PR_WORKFLOW.md                     # Conventional Commits 및 PR 작성 표준
+│   └── rules/                             # 4대 온디맨드 디스패치 모듈화 규칙
+│       ├── 01_STITCH_AND_DESIGN_SPECS.md  # Stitch 3기둥 및 UI 설계 규격
+│       ├── 02_PLANNING_AND_PR_HISTORY.md  # PR 단위 구현 계획서 누적 규격
+│       ├── 03_HARNESS_AND_VERIFICATION.md # 3단계 전주기 5-Gate 하네스 규격
+│       └── 04_ARCHITECTURE_PATTERNS.md    # Next.js RSC, MVVM, DTO, 캐싱 아키텍처
 │
 ├── 📐 standards/                          # 프로젝트 아키텍처 및 4대 코딩 규격
 │   ├── CODING_STANDARDS.md                # 전역 코딩 규격 (TypeScript Strict, RSC, Service Layer)
@@ -36,8 +42,8 @@ starter-kit/
 │   └── hooks/                             # MVVM ViewModel 커스텀 훅 원형
 │
 ├── 🛡️ harness/                            # 4대 전주기 품질 하네스 시스템
-│   ├── HARNESS_GUIDE.md                   # 4대 하네스 총괄 철학 및 6단계 게이트 규격
-│   ├── scripts/                           # 하네스 검증 스크립트 (verify, check-ast, plan)
+│   ├── HARNESS_GUIDE.md                   # 4대 하네스 총괄 철학 및 5단계 게이트 규격
+│   ├── scripts/                           # 하네스 검증 스크립트 (verify, check-ast, check-agents-size, plan)
 │   └── docker/                            # Docker Sandbox 격리 검증 템플릿
 │
 ├── 🎨 stitch/                             # Google Stitch 3기둥 UI 리디자인 팩

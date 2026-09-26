@@ -170,7 +170,7 @@ export function executeFullHarness(options: { mode?: "full" | "quick" | "types" 
   if (allDiagnostics.length === 0 && mode !== "types" && mode !== "format") {
     process.stdout.write(`⏳ [Step 3] Lint & AST Architecture Guardrails Check... `);
     const res = runCommand(
-      'npx jiti scripts/check-ast-guardrails.ts && npx eslint --quiet "src/**/*.{ts,tsx}"',
+      'npx jiti scripts/check-ast-guardrails.ts && npx jiti scripts/check-agents-size.ts && npx eslint --quiet "src/**/*.{ts,tsx}"',
       "AST"
     );
     if (res.success) {

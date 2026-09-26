@@ -51,5 +51,19 @@ AI와 협업할 때 가장 큰 위험은 **(1) 타입/빌드 깨짐의 방치**,
 | **`npm run verify:format`** | Prettier 포맷팅 무결성 단일 검사                                                  |
 | **`npm run verify:fix`**    | 포맷팅 및 기본 린트 오류를 0-토큰 로컬 CPU로 자동 수정                            |
 | **`npm run verify:watch`**  | 파일 저장 시 0.3초 만에 백그라운드 실시간 감시                                    |
+| **`npm run check:agents`**  | `AGENTS.md`(28KB 안전 예산, 40KB 하드 리밋) 및 모듈별 용량 감사 (시스템 프롬프트 잘림 방지) |
 | **`npm run plan:check`**    | `implementation_plan.md` 기획서 양식 및 모듈 영향도 폭발 반경 분석                |
 | **`npm run verify:docker`** | Docker 컨테이너 환경에서 호스트 격리 무오염 최종 승인 빌드                        |
+
+---
+
+## 🤖 4. 멀티 에이전트 파이프라인 및 Reviewer 5-Gate 연계
+
+프로젝트의 멀티 에이전트 파이프라인(`docs/MULTI_AGENT_PIPELINE_GUIDE.md`)에서 **Reviewer 에이전트**는 아래 5대 하네스 게이트웨이를 공식 승인 기준(Acceptance Criteria)으로 삼아 최종 PR 생성 및 머지를 판정합니다:
+
+1. **Gate 1 (정적 타입)**: `tsc --noEmit` 무오류 (TS 컴파일 0 에러)
+2. **Gate 2 (포맷팅)**: `npm run format:check` (Prettier 100% 무결점)
+3. **Gate 3 (아키텍처/린트/용량)**: `check-ast-guardrails.ts` + `check-agents-size.ts` + `eslint` 무오류
+4. **Gate 4 (테스트)**: `vitest run` 전수 통과 (Test Architect가 작성한 Shift-Left TDD 테스트 통과)
+5. **Gate 5 (프로덕션 빌드)**: `next build` 번들 무결점 빌드
+

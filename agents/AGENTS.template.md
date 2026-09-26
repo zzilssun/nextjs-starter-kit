@@ -10,12 +10,13 @@ This document serves as the **Single Source of Truth** for AI agent behaviors, c
 | :-------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------- |
 | **Language**                      | User communications & commits must be in **Korean**. `AGENTS.md` modifications must be **English only**.                                                                                                                                                                                                          | Critical Failure        |
 | **Single Source**                 | Always refer to `README.md` and comprehensively analyze linked/referenced docs in `docs/` before making modifications.                                                                                                                                                                                            | Desync                  |
-| **Workflow**                      | Always write an `implementation_plan.md` that strictly cross-checks and aligns with all `AGENTS.md` rules and standards, containing clearly separated **Functional Specification (기능 명세서)** and **Implementation Plan (구현 계획서)** sections within the document, and obtain approval before code changes. | Blocked                 |
-| **Branching**                     | Commit ONLY to feature branches (`feature/...`). Create PR targeting `main` (`--base main`) immediately. Targeting `develop` is strictly prohibited.                                                                                                                                                              | Branch Violation        |
+| **Workflow & Start Gate**         | Always engage in interactive discussion and planning FIRST. Every plan document must follow `docs/implementation_plan/TEMPLATE.md` with clearly separated **Functional Specification (기능 명세서)** and **Implementation Plan (구현 계획서)**, verified by `npm run plan:check`. Transition to execution only upon explicit directive (e.g., **"작업을 시작해줘"**). Pull Requests must be created ONLY when user explicitly requests PR creation (e.g., **"PR 만들어줘"**). | Blocked                 |
+| **PR Plan History**               | Implementation plans operate on a per-PR basis. All iterative requirements MUST be accumulated within (`docs/implementation_plan/YYYY-MM-DD_PR_{ID}.md`) as sequential `Plan 1, 2, 3...` blocks and committed to git. Concurrently mirror active plan to IDE artifact (`<appDataDir>/brain/<conversation-id>/implementation_plan.md`). Root `implementation_plan.md` is strictly forbidden. | Spec Violation          |
+| **Branching & PR Timing**         | Commit ONLY to feature branches (`feature/...`) branched directly from `main`. Targeting `develop` is strictly prohibited. Create PR targeting `main` (`--base main`) ONLY at the very end when explicitly requested by user.                                                                                                   | Branch Violation        |
 | **Commit Prefix**                 | Adhere to Conventional Commits format (e.g., `feat:`, `fix:`, `refactor:`, `chore:`) followed by Korean description.                                                                                                                                                                                              | Format Rejection        |
 | **Types**                         | Strictly forbid the `any` type in TypeScript. Ensure 100% strict type safety.                                                                                                                                                                                                                                     | Lint Failure            |
-| **Type Checking**                 | Always run `npx tsc --noEmit` at the final verification stage of EVERY task before committing to ensure 0 compile/type errors.                                                                                                                                                                                    | Build Failure           |
-| **Formatting**                    | Always run `npm run format` and verify with `npm run format:check` at the final stage of every task before committing to ensure 100% Prettier compliance.                                                                                                                                                         | Formatting Desync       |
+| **Intermediate Dev Harness**      | During development iterations, use `npm run verify:types` for rapid type checking and `npm run verify:fix` for zero-token local CPU automated Prettier/ESLint fixing.                                                                                                                                             | Harness Desync          |
+| **Mandatory Pre-Commit Pipeline** | Run `npm run verify` (or `npm run verify:full`) to execute the unified full-lifecycle harness pipeline (Type Check ➔ Prettier Format ➔ AST & Lint Guardrails + AGENTS Size Check ➔ Vitest Tests ➔ Next.js Build). Every task must pass 100% with 0 errors before committing. Inspect `.harness/diagnostics.json` for pruned failure context. | Gate Rejection          |
 | **Docs**                          | Record commit details in daily update log (`docs/logs/updates/update-YYYY-MM-DD.md`) and keep root `docs/UPDATE_LOG.md` index in sync. Avoid editing `README.md` log.                                                                                                                                             | Desync                  |
 | **Core Utilities**                | Always inspect and reuse standard utilities from `@/lib/utils` first. Ad-hoc duplication forbidden.                                                                                                                                                                                                               | Code Rejection          |
 | **Common UI Primitives**          | Always inspect and reuse atomic primitives under `@/components/ui` first. Ad-hoc raw HTML duplication forbidden.                                                                                                                                                                                                  | Code Rejection          |
@@ -26,86 +27,64 @@ This document serves as the **Single Source of Truth** for AI agent behaviors, c
 | **3-Pillar Hybrid Context**       | For all Stitch operations, assemble (1) Base Screen Screenshot, (2) Domain Markdown Spec, and (3) Sanitized Component JSX Skeleton (markup & Tailwind only, logic stripped) to prevent hallucination.                                                                                                             | Context Violation       |
 | **Loading State Safeguard**       | Base Screen captures MUST ensure all asynchronous data fetching has settled via `waitForDataReady` (`networkidle`, detachment of spinners/skeletons, real table row rendering). Capturing spinners/skeletons forbidden.                                                                                           | Capture Violation       |
 | **Harness Living Documentation**  | Whenever adding, enhancing, or creating a verification harness, the agent MUST immediately document it under `docs/harness/` and update `docs/HARNESS_MASTER_GUIDE.md`.                                                                                                                                           | Doc Desync              |
-| **PR Plan History**               | Implementation plans operate on a per-PR basis. As long as the PR is maintained, all iterative requirements and reviews MUST be continuously accumulated within that single document (`docs/implementation_plan/YYYY-MM-DD_PR_{ID}.md`) as sequential `Plan 1, 2, 3...` blocks and committed to git. Simultaneously maintain active root/artifact `implementation_plan.md` for working context. | Spec Violation          |
-| **Mandatory Pre-Commit Pipeline** | Run `npm run verify` (or `npm run verify:full`) to execute the unified full-lifecycle harness pipeline (Type Check, Format, AST Guardrails, Tests, Build).                                                                                                                                                        | Gate Rejection          |
-
-- **PR-Based Implementation Plan History Protocol (`docs/implementation_plan/YYYY-MM-DD_PR_{ID}.md`, `docs/implementation_plan/TEMPLATE.md`):** Implementation plans strictly operate on a per-PR lifecycle. As long as the PR is active and maintained, the agent must NOT create separate new files for ongoing revisions; instead, all iterative requirements, user feedback, and architectural adjustments MUST be continuously reflected and accumulated within that single authoritative PR document (`docs/implementation_plan/YYYY-MM-DD_PR_{ID}.md`) following `docs/implementation_plan/TEMPLATE.md`. To guarantee complete architectural traceability and prevent context degradation across multi-turn development cycles, the agent MUST author and permanently commit this PR-scoped implementation plan document. Whenever ongoing development or user feedback introduces new requirements, constraints, or adjustments within the same PR, the agent MUST NOT overwrite existing plans; instead, it MUST iteratively append full standardized plan blocks labeled sequentially as `# [Plan 1]`, `# [Plan 2]`, `# [Plan 3]`... where each Plan block MUST independently contain: (1) Plan Title & Overview, (2) `## User Review Required` (with GitHub alert callouts), (3) `## 1. Functional Specification (기능 명세서)` (Background & Detailed Changes), (4) `## 2. Technical Implementation Plan (기술 구현 계획서)` (`Proposed Changes` categorized by layer/component, explicit code diffs, file links), and (5) `## Verification Plan` (Automated Tests & Manual Verification). Concurrently, the agent MUST maintain the root `implementation_plan.md` and artifact plans for real-time developer context and planning harness analysis (`npm run plan:check`). Omitting PR plan history, splitting ongoing PR revisions into separate documents, or failing to record iterative Plan stages in this exact sequential template structure is strictly classified as a **Spec Violation**.
-
----
-
-## 🏗️ [2. Architectural Design & Coding Standards]
-
-### Next.js App Router Standards
-
-- **RSC First:** Default components to **React Server Components (RSC)**. Client components (`"use client"`) are restricted to interactive leaves.
-- **State Isolation:** Place Server Actions in `src/actions/` and complex client-side interactions in custom hooks under `src/hooks/usecases/`.
-- **Component Reuse:** Prioritize custom UI components in `src/components/ui/` (`Button`, `Input`, `Card`, `Badge`, `Select`, `Table`, `Pagination`, `CommonModal`, `Typography`).
-- **Shared Module Protection:** Minimize direct modifications to shared UI components or core utilities. Always prefer configuring props or adjusting caller components.
-- **Modular Component Decomposition:** Keep UI views strictly modularized by functional responsibility (in-page headers, KPI cards, filter grids, data tables, modals). Never flatten separated sub-components into a single parent file.
-
-### MVVM + Single ViewData Architecture (Client Component Standard)
-
-- **Principle**: Client components with complex state management, form inputs, or Server Action interactions must use a Custom Hook as a **ViewModel** and a single read-only object as **ViewData** (Single Source of Truth).
-- **Data Flow**:
-  - The Custom Hook (ViewModel) encapsulates internal state using a single integrated `useState` object to ensure atomic updates.
-  - The ViewModel exposes a single, read-only `viewData` object and a separate, **stably cached** `actions` object containing event handler callbacks.
-  - The View (React Component) renders itself solely based on properties of `viewData` and triggers events through `actions`.
-- **Rendering Optimization**:
-  - Updating a sub-property in the integrated state must preserve references of other unchanged sub-properties using shallow copy spreads (`...prev`).
-  - All callbacks inside `actions` must use functional state updates (`setState(prev => ...)`) to eliminate external dependencies, maintaining an empty dependency array (`[]`).
-  - Wrap downstream sub-components in `React.memo` to skip rendering when their passed `viewData` slices and `actions` references do not change.
-- **Standards Reference**: See `docs/STANDARDS_MVVM.md` for comprehensive code patterns.
-
-### Async Request Cancellation & Race Condition Prevention
-
-- Whenever switching tabs, applying instant search filters, or selecting items triggers asynchronous Server Actions, previous in-flight requests MUST be invalidated to prevent race conditions.
-- **Request ID Tracking (`useRef<number>`)**: Maintain an incrementing request counter ref (`requestIdRef = useRef(0)`). Increment `requestIdRef.current++` synchronously upon every tab/filter change.
-- **Stale Response Invalidation**: Before updating state in `finally`/`then` blocks, verify that the response belongs to the active request: `if (currentRequestId !== requestIdRef.current) return;`.
-
-### Mapper-Based DTO Design & Prisma.validator Catalog
-
-- **Principle:** Application layers (Actions, UI, Services) must NEVER depend directly on raw database entities (Prisma) or external API responses.
-- **Data Flow:** $\text{Data Source (DB/API)} \longrightarrow \text{Mapper} \longrightarrow \text{DTO (Strict Interface)} \longrightarrow \text{Application}$
-- **Prisma.validator Central Catalog (`src/lib/prisma-selects/`):**
-  - Define reusable DTO `select` constants wrapped with `Prisma.validator<Prisma.ModelSelect>()({ ... })` under `src/lib/prisma-selects/` (e.g., `user.select.ts`).
-  - Re-export via `src/lib/prisma-selects/index.ts`.
-  - Derive payload types using `Prisma.UserGetPayload<{ select: typeof USER_DTO_SELECT }>`.
-  - DB Mappers must accept entity arguments typed with this derived payload type.
-
-### Service Layer Separation & Dependency Injection
-
-- **Thin Controller Pattern:** Server Actions (`src/actions/`) must only validate sessions, parse inputs via Zod, and delegate to Services.
-- **Service Encapsulation:** Core business logic and database transactions belong in Service classes under `src/services/server/`.
-- **Dependency Injection (DI):** Do not import Prisma singletons statically inside services. Pass required clients or repositories via constructor or factory arguments for easy mocking and unit testing.
-
-### Observer / Event-Driven Architecture (`EventDispatcher`)
-
-- Decouple secondary side-effects (audit logs, cache revalidations, notifications) from core Usecases using `EventDispatcher` (`src/lib/event-dispatcher.ts`).
-- Usecases only emit typed domain events (`await eventDispatcher.dispatch("UserRegistered", { userId })`).
-- All event listeners are executed in isolated `try-catch` blocks so side-effect failures never abort the primary business transaction.
+| **System Alerts & Truncation**    | Proactively detect and alert the user immediately whenever system runtime warnings, context truncations (`<truncated ... bytes>`), tool execution errors, or sandbox permissions block operations. Silent omission or proceeding without notifying user is strictly forbidden.                                       | Silent Failure          |
+| **Rule Router Dispatch**          | Whenever executing specialized domain tasks (UI/Stitch, PR planning, verification, architecture), the agent MUST read and adhere to the corresponding rule module in `docs/rules/`.                                                                                                                              | Spec Violation          |
+| **Dual-Track Pipeline Triage**    | Default to automated dual-track routing (Lightweight vs Full Multi-Agent) based on blast radius and risk. Honor explicit user overrides immediately.                                                                                                                                                              | Token Waste             |
+| **AGENTS.md Size Budget**         | Strictly keep `AGENTS.md` under 28KB (hard ceiling 40KB). Run `npm run check:agents` on every rule modification. Exceeding 40KB blocks PR verification to prevent system prompt truncation.                                                                                                                       | Size Rejection          |
 
 ---
 
-## 💾 [3. Database & Performance Optimization]
+## 🧭 [2. Modular Rule Directory (On-Demand Dispatch)]
 
-- **N+1 Prevention:** Optimize PostgreSQL/Prisma relations using `include` or explicit `select`. Use transactions (`prisma.$transaction`) for multi-step mutations.
-- **Lightweight Projections:** Select only required fields. Never query whole tables when specific columns suffice.
-- **Fuzzy Search:** At database level, utilize PostgreSQL `pg_trgm` similarity matching with fallback to `contains`.
+To prevent prompt context bloat and ensure zero-truncation, specialized protocols are modularized under `docs/rules/`. Before performing domain-specific tasks, consult the authoritative guide:
 
----
-
-## 🚨 [4. Error Handling & Git Workflows]
-
-- **No Dummy Data:** Never bypass features with mock/dummy data in production paths.
-- **Error Loop Gate:** Pause execution after **5 consecutive occurrences** of the same error. Summarize status and request user guidance.
-- **Git Branching:** Commit only to `feature/...` branches branched directly from `main`. All PRs must target `main` (`gh pr create --base main`).
-- **PR Title & Body:** Conventional Commits title. Body in Korean with Overview, Implementation Plan Full Text, Key Changes, and Verification Checklist. Refer to `docs/PR_EXAMPLE.md`.
+| Task / Domain                     | Authoritative Rule Module                                                                                                                     | Required Action                                                                                                         |
+| :-------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------- |
+| **UI, Stitch Redesign & Specs**   | [`docs/rules/01_STITCH_AND_DESIGN_SPECS.md`](file:///absolute/path/to/docs/rules/01_STITCH_AND_DESIGN_SPECS.md)                               | Enforce 3-Pillar Hybrid Context, code-first ground truth, zero-spinner captures, and modal/sub-tab scope isolation.     |
+| **Planning & PR History**         | [`docs/rules/02_PLANNING_AND_PR_HISTORY.md`](file:///absolute/path/to/docs/rules/02_PLANNING_AND_PR_HISTORY.md)                               | Enforce PR-scoped cumulative plan history, Single In-Progress rule, and artifact mirroring.                            |
+| **Harness Gates & Verification**  | [`docs/rules/03_HARNESS_AND_VERIFICATION.md`](file:///absolute/path/to/docs/rules/03_HARNESS_AND_VERIFICATION.md)                             | Execute 3-stage 5-gate quality pipeline, AI diagnostics pruning (`.harness/diagnostics.json`), and living docs sync.     |
+| **Architecture, MVVM & Backend**  | [`docs/rules/04_ARCHITECTURE_PATTERNS.md`](file:///absolute/path/to/docs/rules/04_ARCHITECTURE_PATTERNS.md)                                   | Enforce RSC first, MVVM Single ViewData, Async request cancellation, Mapper DTOs, Observer pattern, and caching tiers. |
+| **Multi-Agent Pipeline & Triage** | [`docs/MULTI_AGENT_PIPELINE_GUIDE.md`](file:///absolute/path/to/docs/MULTI_AGENT_PIPELINE_GUIDE.md)                                           | Route between Lightweight Track (Coder + Reviewer) and Full 5-Phase Multi-Agent Team automatically or via override.     |
 
 ---
 
-## 🤖 [5. AI Agent Token Optimization & Context Management]
+## 🤖 [3. Dual-Track Multi-Agent Execution Protocol]
 
-- **Context Diet:** Keep files focused and modular (<300 lines recommended). Proactively split monolithic components.
-- **Minimal Diffs:** Modify only targeted blocks using precise replacement tools. Avoid full-file rewrites.
-- **Zero-Token Local Pre-Fix:** Run `npm run verify:fix` and `npm run format` locally before requesting LLM intervention for lint/formatting errors.
-- **Diagnostics Compression:** Consume `.harness/diagnostics.json` instead of pasting thousands of lines of raw build logs.
+To optimize token efficiency and prevent unnecessary overhead, the agent operates in dual-track execution mode:
+
+1. **Automated Triage (Default)**:
+   - **Lightweight Track**: Triggered automatically for low-impact changes (typos, CSS styles, single-file leaf bug fixes, localized copy). Uses isolated single Coder + Reviewer (5-Gate Harness). Bypasses Discovery & Test Architect phases.
+   - **Full Multi-Agent Track**: Triggered automatically for high-risk changes (Prisma schema, financial calculations, 3rd-party API integrations, security/auth). Deploys full 5-phase team (Phase 1: PO + Tech + UX + Red-Team -> Phase 2: Planner -> Phase 3: Test Architect TDD -> Phase 4: Isolated Coder -> Phase 5: QA Tester & 5-Gate Reviewer).
+2. **Explicit Manual Override**:
+   - The user may explicitly request lightweight execution ("경량 모드로 해줘", "빠르게 수정해줘") or full multi-agent orchestration ("에이전트 풀팀으로 해줘", "기획/테스트팀 다 투입해줘").
+   - Explicit user requests supersede automatic triage unconditionally.
+3. **Proactive Track Announcement (Per User Prompt)**:
+   - The agent MUST explicitly display the active pipeline track badge ONCE at the very beginning of the response to each user prompt/message.
+   - Do NOT repeat or duplicate the badge inside intermediate tool execution steps, sub-action progress logs, or background task notifications within that turn:
+     - Lightweight: `> ⚡ **[Pipeline Track: Lightweight Fast-Track]** (Rationale: Low blast radius / single-file leaf change / explicit user override)`
+     - Full Multi-Agent: `> 🏛️ **[Pipeline Track: Full Multi-Agent Team]** (Rationale: High risk / Prisma schema / financial transaction / external API / explicit user override)`
+
+---
+
+## 🚨 [4. Proactive System Alerts & Context Integrity Protocol]
+
+The agent MUST actively monitor runtime system states and prompt context integrity:
+
+1. **Zero Silent Failure**: Whenever system-level anomalies occur—including instruction or context truncation tags (`<truncated ... bytes>`), model token overflows, unhandled tool errors, or sandbox permissions block operations. Silent omission or proceeding without notifying the user is strictly forbidden.
+2. **Context Integrity Check**: Never assume missing rules when truncation occurs. Immediately request clarification or read the un-truncated authoritative documents from disk.
+
+---
+
+## 🌿 [5. Git Workflow & Commit Conventions]
+
+1. **Branch Strategy**:
+   - Always branch off `main`: `git checkout -b feature/<feature-name>`.
+   - Never push directly to `main` or `develop`.
+   - Create PR targeting `main` (`gh pr create --base main`) ONLY at the very end when explicitly requested by user.
+2. **Conventional Commits (Korean)**:
+   - `feat: 새로운 기능 추가`
+   - `fix: 버그 수정`
+   - `refactor: 코드 리팩토링 (기능 변경 없음)`
+   - `docs: 문서 수정`
+   - `test: 테스트 코드 추가 및 수정`
+   - `chore: 빌드, 패키지 매니저 설정 등 기타 작업`
