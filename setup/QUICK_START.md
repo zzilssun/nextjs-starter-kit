@@ -39,10 +39,12 @@ STITCH_PROJECT_ID="your-stitch-project-id"
 
 ### 4단계: 스타터 킷 파일 배치
 
-1. **루트 파일**:
-   - `AGENTS.template.md` ➔ `AGENTS.md`
-   - `DESIGN.template.md` ➔ `DESIGN.md`
-   - `Dockerfile.harness` ➔ `Dockerfile.harness`
+1. **지침 & 설계 명세**:
+   - `agents/AGENTS.template.md` ➔ `AGENTS.md`
+   - `agents/rules/*` ➔ `docs/rules/*` (4대 온디맨드 디스패치 모듈화 규칙)
+   - `agents/MULTI_AGENT_PIPELINE_GUIDE.md` ➔ `docs/MULTI_AGENT_PIPELINE_GUIDE.md` (5단계 멀티 에이전트 협업 파이프라인 가이드)
+   - `stitch/DESIGN.template.md` ➔ `DESIGN.md`
+   - `harness/docker/Dockerfile.harness` ➔ `Dockerfile.harness`
 2. **스크립트**:
    - `harness/scripts/*` 및 `stitch/scripts/*` ➔ `scripts/`로 복사
    - `docker-harness.sh`에 실행 권한 부여: `chmod +x scripts/docker-harness.sh`
@@ -50,14 +52,20 @@ STITCH_PROJECT_ID="your-stitch-project-id"
    - `boilerplate/components/ui/*` ➔ `src/components/ui/`
    - `boilerplate/lib/*` ➔ `src/lib/`
    - `boilerplate/hooks/*` ➔ `src/hooks/`
-4. **`package.json`**:
-   - `setup/PACKAGE_JSON.md`의 `scripts` 목록을 병합합니다.
+4. **Living Docs 및 계획서 인프라**:
+   - `standards/*`, `harness/HARNESS_GUIDE.md`, `stitch/STITCH_GUIDE.md`, `agents/PR_WORKFLOW.md` ➔ `docs/`로 복사
+   - `docs/implementation_plan/TEMPLATE.md` 및 `README.md` ➔ `docs/implementation_plan/`로 복사
+5. **`package.json`**:
+   - `setup/PACKAGE_JSON.md`의 `scripts`(`check:agents`, `plan:check` 포함) 목록을 병합합니다.
 
 ### 5단계: 첫 하네스 검증 실행
 
 ```bash
 # Prisma 클라이언트 생성
 npm run postinstall
+
+# 지침서 28KB 안전 예산 검증
+npm run check:agents
 
 # 전체 무결성 게이트 실행 (0-오류 검증)
 npm run verify
