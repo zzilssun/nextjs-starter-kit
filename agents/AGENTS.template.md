@@ -30,6 +30,7 @@ This document serves as the **Single Source of Truth** for AI agent behaviors, c
 | **System Alerts & Truncation**    | Proactively detect and alert the user immediately whenever system runtime warnings, context truncations (`<truncated ... bytes>`), tool execution errors, or sandbox permissions block operations. Silent omission or proceeding without notifying user is strictly forbidden.                                       | Silent Failure          |
 | **Rule Router Dispatch**          | Whenever executing specialized domain tasks (UI/Stitch, PR planning, verification, architecture), the agent MUST read and adhere to the corresponding rule module in `docs/rules/`.                                                                                                                              | Spec Violation          |
 | **Dual-Track Pipeline Triage**    | Default to automated dual-track routing (Lightweight vs Full Multi-Agent) based on blast radius and risk. Honor explicit user overrides immediately.                                                                                                                                                              | Token Waste             |
+| **Mandatory Subagent Delegation** | When Full Multi-Agent Track is active, the agent MUST explicitly dispatch subagents via `invoke_subagent`. Simulating roles or directly modifying code in the parent session without spawning subagents is strictly forbidden.                                                                                    | Delegation Failure      |
 | **AGENTS.md Size Budget**         | Strictly keep `AGENTS.md` under 28KB (hard ceiling 40KB). Run `npm run check:agents` on every rule modification. Exceeding 40KB blocks PR verification to prevent system prompt truncation.                                                                                                                       | Size Rejection          |
 
 ---
@@ -63,6 +64,10 @@ To optimize token efficiency and prevent unnecessary overhead, the agent operate
    - Do NOT repeat or duplicate the badge inside intermediate tool execution steps, sub-action progress logs, or background task notifications within that turn:
      - Lightweight: `> ⚡ **[Pipeline Track: Lightweight Fast-Track]** (Rationale: Low blast radius / single-file leaf change / explicit user override)`
      - Full Multi-Agent: `> 🏛️ **[Pipeline Track: Full Multi-Agent Team]** (Rationale: High risk / Prisma schema / financial transaction / external API / explicit user override)`
+4. **Mandatory Subagent Delegation (`invoke_subagent`)**:
+   - Whenever the Full Multi-Agent Track is active (via triage or user request), the agent MUST explicitly call `invoke_subagent` to dispatch dedicated subagents with specific roles (e.g., `Test Architect`, `Coder`, `QA Tester`, `Reviewer`).
+   - Simulating multi-agent collaboration or modifying implementation code directly within the parent session without dispatching subagents is strictly forbidden.
+   - The user must always observe active subagent lifecycles in the UI interface.
 
 ---
 
